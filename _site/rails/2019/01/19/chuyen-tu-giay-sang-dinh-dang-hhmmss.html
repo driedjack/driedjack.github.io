@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>Chuyển từ giây sang định dạng hh:mm:ss | driedjack</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Chuyển từ giây sang định dạng hh:mm:ss" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Có những trường hợp ta có số liệu thời gian là một số có đơn vị thời gian để thuận tiện tính toán trong các bài toán phân tích, thống kê như tính tổng, trung bình thời gian, … Nhưng khi dùng thể hiện lên màn hình mà đích đến là người dùng thì cần phải định dạng lượng thời gian đó theo kiểu mà người dùng quen hình dung về thời gian, ví dụ như 95:05:27 là 95 tiếng 5 phút 27 giây chẳng hạn. Bài viết hôm nay là để nói về việc chuyển từ số giây sang định dạng này cộng với việc tại sao lại viết về nó. Ý tưởng viết bài này đến từ thực tế trong công việc, muốn hiển thị trực quan thời gian lên màn hình thời gian người dùng trên trang web. Với đầu vào là số giây. Thì khi gặp task mới, như một thói quen của lính mới, mình mò lên google để tìm cách làm. Một vài bài thảo luận trên Stackoverflow có nói về vấn đề này, cách mà họ dùng là tạo một đối tượng thuộc lớp Time với thời gian từ số giây của mình. Nhưng hạn chế của nó là chỉ đúng với thời gian trong một ngày, nếu số giây lớn hơn số giây của một ngày thì số giờ của ngày bị lố đó bị cắt mất. Time.at(seconds).utc.strftime(&#39;%H:%M:%S&#39;) # Với seconds từ 0 tới (86400 - 1) thì kết quả đúng # --&gt; 53244s: &quot;14:47:24&quot; # Với seconds lớn hơn giá trị một ngày thì không đúng như mong muốn # --&gt; 200000s: &quot;07:33:20&quot; (thay vì &quot;55:33:20&quot;) Thế nên mình dao kéo lại theo kiểu nếu số giây lớn hơn một ngày thì sẽ lấy số giờ trội cộng với số giờ theo hàm cũ tính từ số giây sau khi đã trừ ra số giờ trội ấy, sau đó ghép lại với đuôi phút và giây. def hms_style(seconds) hms = Time.at(seconds).utc.strftime(&#39;%H:%M:%S&#39;) days = seconds / Constant::SECONDS_IN_DAY return hms if days.zero? h, m, s = hms.split(&#39;:&#39;) &quot;#{h.to_i + days * 24}:#{m}:#{s}&quot; end # hms_style(200000) --&gt; &quot;55:33:20&quot; Bingo! Yeah, thế là xong, đã hoàn thành một chức năng đơn giản, push code và chờ review thôi. … Một ngày làm việc trôi qua, tối về cái suy nghĩ về chức năng đơn giản ấy vẩn vơ trong đầu. Tại sao khi ập vô làm mình không chịu suy nghĩ về nó trước mà lại bay đi hỏi người khác như thế. Thế thì mình có tư duy được chút nào không, có học được cách giải quyết vấn đề không, hay chỉ học được cách ăn cắp và đạo nhái ý tưởng. Thế là mình quyết định ngồi xuống và suy nghĩ lại về nó. Mình cảm nhận đây đơn thuần chỉ là xử lý số và chuyển về kiểu chữ. Dùng tới lớp Time﻿ chỉ là một bước dùng sẵn những thứ có vẻ là đúng thôi, với mình cũng chả rõ bên dưới cái hàm đó thực hiện những gì nữa, liệu làm như thế performance có ổn không và tại sao lại liên quan đến lớp Timecơ chứ. Như này, với số giây đó, mình có tính ra được phút với giờ không. Được, bằng cách chia nó cho 60 (số giây của một phút) được phần nguyên của thương là số phút, phần dư ra chính là số giây. Số giây không cần phải xử lý nữa nên sẽ là phần giây của kết quả. Số phút đó có thể lớn hơn 60, vậy thì ta chia tiếp cho 60 (số phút của một giờ) tương tự như trước để có được số giờ và số phút trồi ra. Giờ và phút này chính là kết quả mình muốn. def hms_style(sec) min, s = sec.divmod 60 h, m = min.divmod 60 &quot;#{two_digits(h)}:#{two_digits(m)}:#{two_digits(s)}&quot; end private # Chuyển từ một chữ số sang hai chữ số def two_digits(number) &#39;%02i&#39; % number end Yeah, đơn giản hơn rồi. Mình đã có thể tự suy nghĩ và tự giải quyết bài toán rồi. Thêm nữa, khi dùng benchmark để đo thì hàm mới này nhanh hơn hàm cũ rất nhiều. Ahihi. 🤩 Cám ơn đã đọc bài, có gì thì tham gia bình luận cho vui hén." />
+<meta property="og:description" content="Có những trường hợp ta có số liệu thời gian là một số có đơn vị thời gian để thuận tiện tính toán trong các bài toán phân tích, thống kê như tính tổng, trung bình thời gian, … Nhưng khi dùng thể hiện lên màn hình mà đích đến là người dùng thì cần phải định dạng lượng thời gian đó theo kiểu mà người dùng quen hình dung về thời gian, ví dụ như 95:05:27 là 95 tiếng 5 phút 27 giây chẳng hạn. Bài viết hôm nay là để nói về việc chuyển từ số giây sang định dạng này cộng với việc tại sao lại viết về nó. Ý tưởng viết bài này đến từ thực tế trong công việc, muốn hiển thị trực quan thời gian lên màn hình thời gian người dùng trên trang web. Với đầu vào là số giây. Thì khi gặp task mới, như một thói quen của lính mới, mình mò lên google để tìm cách làm. Một vài bài thảo luận trên Stackoverflow có nói về vấn đề này, cách mà họ dùng là tạo một đối tượng thuộc lớp Time với thời gian từ số giây của mình. Nhưng hạn chế của nó là chỉ đúng với thời gian trong một ngày, nếu số giây lớn hơn số giây của một ngày thì số giờ của ngày bị lố đó bị cắt mất. Time.at(seconds).utc.strftime(&#39;%H:%M:%S&#39;) # Với seconds từ 0 tới (86400 - 1) thì kết quả đúng # --&gt; 53244s: &quot;14:47:24&quot; # Với seconds lớn hơn giá trị một ngày thì không đúng như mong muốn # --&gt; 200000s: &quot;07:33:20&quot; (thay vì &quot;55:33:20&quot;) Thế nên mình dao kéo lại theo kiểu nếu số giây lớn hơn một ngày thì sẽ lấy số giờ trội cộng với số giờ theo hàm cũ tính từ số giây sau khi đã trừ ra số giờ trội ấy, sau đó ghép lại với đuôi phút và giây. def hms_style(seconds) hms = Time.at(seconds).utc.strftime(&#39;%H:%M:%S&#39;) days = seconds / Constant::SECONDS_IN_DAY return hms if days.zero? h, m, s = hms.split(&#39;:&#39;) &quot;#{h.to_i + days * 24}:#{m}:#{s}&quot; end # hms_style(200000) --&gt; &quot;55:33:20&quot; Bingo! Yeah, thế là xong, đã hoàn thành một chức năng đơn giản, push code và chờ review thôi. … Một ngày làm việc trôi qua, tối về cái suy nghĩ về chức năng đơn giản ấy vẩn vơ trong đầu. Tại sao khi ập vô làm mình không chịu suy nghĩ về nó trước mà lại bay đi hỏi người khác như thế. Thế thì mình có tư duy được chút nào không, có học được cách giải quyết vấn đề không, hay chỉ học được cách ăn cắp và đạo nhái ý tưởng. Thế là mình quyết định ngồi xuống và suy nghĩ lại về nó. Mình cảm nhận đây đơn thuần chỉ là xử lý số và chuyển về kiểu chữ. Dùng tới lớp Time﻿ chỉ là một bước dùng sẵn những thứ có vẻ là đúng thôi, với mình cũng chả rõ bên dưới cái hàm đó thực hiện những gì nữa, liệu làm như thế performance có ổn không và tại sao lại liên quan đến lớp Timecơ chứ. Như này, với số giây đó, mình có tính ra được phút với giờ không. Được, bằng cách chia nó cho 60 (số giây của một phút) được phần nguyên của thương là số phút, phần dư ra chính là số giây. Số giây không cần phải xử lý nữa nên sẽ là phần giây của kết quả. Số phút đó có thể lớn hơn 60, vậy thì ta chia tiếp cho 60 (số phút của một giờ) tương tự như trước để có được số giờ và số phút trồi ra. Giờ và phút này chính là kết quả mình muốn. def hms_style(sec) min, s = sec.divmod 60 h, m = min.divmod 60 &quot;#{two_digits(h)}:#{two_digits(m)}:#{two_digits(s)}&quot; end private # Chuyển từ một chữ số sang hai chữ số def two_digits(number) &#39;%02i&#39; % number end Yeah, đơn giản hơn rồi. Mình đã có thể tự suy nghĩ và tự giải quyết bài toán rồi. Thêm nữa, khi dùng benchmark để đo thì hàm mới này nhanh hơn hàm cũ rất nhiều. Ahihi. 🤩 Cám ơn đã đọc bài, có gì thì tham gia bình luận cho vui hén." />
+<link rel="canonical" href="http://localhost:4000/rails/2019/01/19/chuyen-tu-giay-sang-dinh-dang-hhmmss.html" />
+<meta property="og:url" content="http://localhost:4000/rails/2019/01/19/chuyen-tu-giay-sang-dinh-dang-hhmmss.html" />
+<meta property="og:site_name" content="driedjack" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-01-19T00:00:00+07:00" />
+<script type="application/ld+json">
+{"headline":"Chuyển từ giây sang định dạng hh:mm:ss","url":"http://localhost:4000/rails/2019/01/19/chuyen-tu-giay-sang-dinh-dang-hhmmss.html","datePublished":"2019-01-19T00:00:00+07:00","dateModified":"2019-01-19T00:00:00+07:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/rails/2019/01/19/chuyen-tu-giay-sang-dinh-dang-hhmmss.html"},"description":"Có những trường hợp ta có số liệu thời gian là một số có đơn vị thời gian để thuận tiện tính toán trong các bài toán phân tích, thống kê như tính tổng, trung bình thời gian, … Nhưng khi dùng thể hiện lên màn hình mà đích đến là người dùng thì cần phải định dạng lượng thời gian đó theo kiểu mà người dùng quen hình dung về thời gian, ví dụ như 95:05:27 là 95 tiếng 5 phút 27 giây chẳng hạn. Bài viết hôm nay là để nói về việc chuyển từ số giây sang định dạng này cộng với việc tại sao lại viết về nó. Ý tưởng viết bài này đến từ thực tế trong công việc, muốn hiển thị trực quan thời gian lên màn hình thời gian người dùng trên trang web. Với đầu vào là số giây. Thì khi gặp task mới, như một thói quen của lính mới, mình mò lên google để tìm cách làm. Một vài bài thảo luận trên Stackoverflow có nói về vấn đề này, cách mà họ dùng là tạo một đối tượng thuộc lớp Time với thời gian từ số giây của mình. Nhưng hạn chế của nó là chỉ đúng với thời gian trong một ngày, nếu số giây lớn hơn số giây của một ngày thì số giờ của ngày bị lố đó bị cắt mất. Time.at(seconds).utc.strftime(&#39;%H:%M:%S&#39;) # Với seconds từ 0 tới (86400 - 1) thì kết quả đúng # --&gt; 53244s: &quot;14:47:24&quot; # Với seconds lớn hơn giá trị một ngày thì không đúng như mong muốn # --&gt; 200000s: &quot;07:33:20&quot; (thay vì &quot;55:33:20&quot;) Thế nên mình dao kéo lại theo kiểu nếu số giây lớn hơn một ngày thì sẽ lấy số giờ trội cộng với số giờ theo hàm cũ tính từ số giây sau khi đã trừ ra số giờ trội ấy, sau đó ghép lại với đuôi phút và giây. def hms_style(seconds) hms = Time.at(seconds).utc.strftime(&#39;%H:%M:%S&#39;) days = seconds / Constant::SECONDS_IN_DAY return hms if days.zero? h, m, s = hms.split(&#39;:&#39;) &quot;#{h.to_i + days * 24}:#{m}:#{s}&quot; end # hms_style(200000) --&gt; &quot;55:33:20&quot; Bingo! Yeah, thế là xong, đã hoàn thành một chức năng đơn giản, push code và chờ review thôi. … Một ngày làm việc trôi qua, tối về cái suy nghĩ về chức năng đơn giản ấy vẩn vơ trong đầu. Tại sao khi ập vô làm mình không chịu suy nghĩ về nó trước mà lại bay đi hỏi người khác như thế. Thế thì mình có tư duy được chút nào không, có học được cách giải quyết vấn đề không, hay chỉ học được cách ăn cắp và đạo nhái ý tưởng. Thế là mình quyết định ngồi xuống và suy nghĩ lại về nó. Mình cảm nhận đây đơn thuần chỉ là xử lý số và chuyển về kiểu chữ. Dùng tới lớp Time﻿ chỉ là một bước dùng sẵn những thứ có vẻ là đúng thôi, với mình cũng chả rõ bên dưới cái hàm đó thực hiện những gì nữa, liệu làm như thế performance có ổn không và tại sao lại liên quan đến lớp Timecơ chứ. Như này, với số giây đó, mình có tính ra được phút với giờ không. Được, bằng cách chia nó cho 60 (số giây của một phút) được phần nguyên của thương là số phút, phần dư ra chính là số giây. Số giây không cần phải xử lý nữa nên sẽ là phần giây của kết quả. Số phút đó có thể lớn hơn 60, vậy thì ta chia tiếp cho 60 (số phút của một giờ) tương tự như trước để có được số giờ và số phút trồi ra. Giờ và phút này chính là kết quả mình muốn. def hms_style(sec) min, s = sec.divmod 60 h, m = min.divmod 60 &quot;#{two_digits(h)}:#{two_digits(m)}:#{two_digits(s)}&quot; end private # Chuyển từ một chữ số sang hai chữ số def two_digits(number) &#39;%02i&#39; % number end Yeah, đơn giản hơn rồi. Mình đã có thể tự suy nghĩ và tự giải quyết bài toán rồi. Thêm nữa, khi dùng benchmark để đo thì hàm mới này nhanh hơn hàm cũ rất nhiều. Ahihi. 🤩 Cám ơn đã đọc bài, có gì thì tham gia bình luận cho vui hén.","@type":"BlogPosting","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="driedjack" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">driedjack</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Chuyển từ giây sang định dạng hh:mm:ss</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-01-19T00:00:00+07:00" itemprop="datePublished">Jan 19, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p><em>Có những trường hợp ta có số liệu thời gian là một số có đơn vị thời gian để thuận tiện tính toán trong các bài toán phân tích, thống kê như tính tổng, trung bình thời gian, … Nhưng khi dùng thể hiện lên màn hình mà đích đến là người dùng thì cần phải định dạng lượng thời gian đó theo kiểu mà người dùng quen hình dung về thời gian, ví dụ như <strong>95:05:27</strong> là 95 tiếng 5 phút 27 giây chẳng hạn. Bài viết hôm nay là để nói về việc chuyển từ số giây sang định dạng này cộng với việc tại sao lại viết về nó.</em></p>
+
+<p>Ý tưởng viết bài này đến từ thực tế trong công việc, muốn hiển thị trực quan thời gian lên màn hình thời gian người dùng trên trang web. Với đầu vào là số giây. Thì khi gặp task mới, như một thói quen của lính mới, mình mò lên google để tìm cách làm. Một vài bài thảo luận trên <em>Stackoverflow</em> có nói về vấn đề này, cách mà họ dùng là tạo một đối tượng thuộc lớp <code class="highlighter-rouge">Time</code> với thời gian từ số giây của mình. Nhưng hạn chế của nó là chỉ đúng với thời gian trong một ngày, nếu số giây lớn hơn số giây của một ngày thì số giờ của ngày bị lố đó bị cắt mất.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Time</span><span class="p">.</span><span class="nf">at</span><span class="p">(</span><span class="n">seconds</span><span class="p">).</span><span class="nf">utc</span><span class="p">.</span><span class="nf">strftime</span><span class="p">(</span><span class="s1">'%H:%M:%S'</span><span class="p">)</span>
+
+<span class="c1"># Với seconds từ 0 tới (86400 - 1) thì kết quả đúng</span>
+<span class="c1"># --&gt; 53244s: "14:47:24"</span>
+<span class="c1"># Với seconds lớn hơn giá trị một ngày thì không đúng như mong muốn</span>
+<span class="c1"># --&gt; 200000s: "07:33:20" (thay vì "55:33:20")</span>
+</code></pre></div></div>
+
+<p>Thế nên mình dao kéo lại theo kiểu nếu số giây lớn hơn một ngày thì sẽ lấy số giờ trội cộng với số giờ theo hàm cũ tính từ số giây sau khi đã trừ ra số giờ trội ấy, sau đó ghép lại với đuôi phút và giây.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">hms_style</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span>
+  <span class="n">hms</span>  <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">at</span><span class="p">(</span><span class="n">seconds</span><span class="p">).</span><span class="nf">utc</span><span class="p">.</span><span class="nf">strftime</span><span class="p">(</span><span class="s1">'%H:%M:%S'</span><span class="p">)</span>
+  <span class="n">days</span> <span class="o">=</span> <span class="n">seconds</span> <span class="o">/</span> <span class="no">Constant</span><span class="o">::</span><span class="no">SECONDS_IN_DAY</span>
+  <span class="k">return</span> <span class="n">hms</span> <span class="k">if</span> <span class="n">days</span><span class="p">.</span><span class="nf">zero?</span>
+
+  <span class="n">h</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">hms</span><span class="p">.</span><span class="nf">split</span><span class="p">(</span><span class="s1">':'</span><span class="p">)</span>
+  <span class="s2">"</span><span class="si">#{</span><span class="n">h</span><span class="p">.</span><span class="nf">to_i</span> <span class="o">+</span> <span class="n">days</span> <span class="o">*</span> <span class="mi">24</span><span class="si">}</span><span class="s2">:</span><span class="si">#{</span><span class="n">m</span><span class="si">}</span><span class="s2">:</span><span class="si">#{</span><span class="n">s</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+
+<span class="c1"># hms_style(200000) --&gt; "55:33:20" Bingo!</span>
+</code></pre></div></div>
+
+<p>Yeah, thế là xong, đã hoàn thành một chức năng đơn giản, push code và chờ review thôi.</p>
+
+<p>…</p>
+
+<p>Một ngày làm việc trôi qua, tối về cái suy nghĩ về chức năng đơn giản ấy vẩn vơ trong đầu. Tại sao khi ập vô làm mình không chịu suy nghĩ về nó trước mà lại bay đi hỏi người khác như thế. Thế thì mình có tư duy được chút nào không, có học được cách giải quyết vấn đề không, hay chỉ học được cách ăn cắp và đạo nhái ý tưởng. Thế là mình quyết định ngồi xuống và suy nghĩ lại về nó.</p>
+
+<p>Mình cảm nhận đây đơn thuần chỉ là xử lý số và chuyển về kiểu chữ. Dùng tới lớp <code class="highlighter-rouge">Time</code>﻿ chỉ là một bước dùng sẵn những thứ có vẻ là đúng thôi, với mình cũng chả rõ bên dưới cái hàm đó thực hiện những gì nữa, liệu làm như thế performance có ổn không và tại sao lại liên quan đến lớp <code class="highlighter-rouge">Time</code>cơ chứ.</p>
+
+<p>Như này, với số giây đó, mình có tính ra được phút với giờ không. Được, bằng cách chia nó cho 60 (số giây của một phút) được phần nguyên của thương là số phút, phần dư ra chính là số giây. Số giây không cần phải xử lý nữa nên sẽ là phần giây của kết quả. Số phút đó có thể lớn hơn 60, vậy thì ta chia tiếp cho 60 (số phút của một giờ) tương tự như trước để có được số giờ và số phút trồi ra. Giờ và phút này chính là kết quả mình muốn.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">hms_style</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span>
+  <span class="n">min</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">sec</span><span class="p">.</span><span class="nf">divmod</span> <span class="mi">60</span>
+  <span class="n">h</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="n">min</span><span class="p">.</span><span class="nf">divmod</span> <span class="mi">60</span>
+
+  <span class="s2">"</span><span class="si">#{</span><span class="n">two_digits</span><span class="p">(</span><span class="n">h</span><span class="p">)</span><span class="si">}</span><span class="s2">:</span><span class="si">#{</span><span class="n">two_digits</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="si">}</span><span class="s2">:</span><span class="si">#{</span><span class="n">two_digits</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+
+<span class="kp">private</span>
+
+<span class="c1"># Chuyển từ một chữ số sang hai chữ số</span>
+<span class="k">def</span> <span class="nf">two_digits</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+  <span class="s1">'%02i'</span> <span class="o">%</span> <span class="n">number</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Yeah, đơn giản hơn rồi. Mình đã có thể tự suy nghĩ và tự giải quyết bài toán rồi.</p>
+
+<p>Thêm nữa, khi dùng benchmark để đo thì hàm mới này nhanh hơn hàm cũ rất nhiều. Ahihi. 🤩</p>
+
+<p><img src="/assets/images/hms-bench.png" alt="HMS benchmark" class="center-image" /></p>
+
+<p>Cám ơn đã đọc bài, có gì thì tham gia bình luận cho vui hén.</p>
+
+  </div><a class="u-url" href="/rails/2019/01/19/chuyen-tu-giay-sang-dinh-dang-hhmmss.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">driedjack</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">driedjack</li><li><a class="u-email" href="mailto:driedjack@gmail.com">driedjack@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/driedjack"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">driedjack</span></a></li><li><a href="https://www.twitter.com/driedjack"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">driedjack</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Blog của tôi.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
