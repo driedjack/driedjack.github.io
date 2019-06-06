@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Thông tin
+title: Về tôi
 permalink: /about/
 ---
 

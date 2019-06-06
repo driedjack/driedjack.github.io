@@ -1,4 +1,169 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-06-06T19:19:52+07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">driedjack</title><subtitle>Là tên  của tôi.</subtitle><entry><title type="html">Chuyển từ giây sang định dạng hh:mm:ss</title><link href="http://localhost:4000/rails/2019/01/19/chuyen-tu-giay-sang-dinh-dang-hhmmss.html" rel="alternate" type="text/html" title="Chuyển từ giây sang định dạng hh:mm:ss" /><published>2019-01-19T00:00:00+07:00</published><updated>2019-01-19T00:00:00+07:00</updated><id>http://localhost:4000/rails/2019/01/19/chuyen-tu-giay-sang-dinh-dang-hhmmss</id><content type="html" xml:base="http://localhost:4000/rails/2019/01/19/chuyen-tu-giay-sang-dinh-dang-hhmmss.html">&lt;p&gt;&lt;em&gt;Có những trường hợp ta có số liệu thời gian là một số có đơn vị thời gian để thuận tiện tính toán trong các bài toán phân tích, thống kê như tính tổng, trung bình thời gian, … Nhưng khi dùng thể hiện lên màn hình mà đích đến là người dùng thì cần phải định dạng lượng thời gian đó theo kiểu mà người dùng quen hình dung về thời gian, ví dụ như &lt;strong&gt;95:05:27&lt;/strong&gt; là 95 tiếng 5 phút 27 giây chẳng hạn. Bài viết hôm nay là để nói về việc chuyển từ số giây sang định dạng này cộng với việc tại sao lại viết về nó.&lt;/em&gt;&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-06-06T19:36:24+07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Dried Jack</title><entry><title type="html">Những kiến thức cơ bản Rails Migration</title><link href="http://localhost:4000/rails/2019/06/06/nhung-kien-thuc-co-ban-rails-migration.html" rel="alternate" type="text/html" title="Những kiến thức cơ bản Rails Migration" /><published>2019-06-06T00:00:00+07:00</published><updated>2019-06-06T00:00:00+07:00</updated><id>http://localhost:4000/rails/2019/06/06/nhung-kien-thuc-co-ban-rails-migration</id><content type="html" xml:base="http://localhost:4000/rails/2019/06/06/nhung-kien-thuc-co-ban-rails-migration.html">&lt;h2 id=&quot;rails-migrations-là-gì-tại-sao-lại-có-nó-và-dùng-nó-như-thế-nào&quot;&gt;Rails migrations là gì, tại sao lại có nó và dùng nó như thế nào?&lt;/h2&gt;
+
+&lt;p&gt;Theo như trang hướng dẫn chính thức có giới thiệu thì migration là cách tiện lời để thay đổi database (db) schema dễ dàng và
+ thống nhất theo thời gian. Với mỗi sự thay đổi trong cấu trúc db từ đầu đến cuối đều được phản ánh hết trong migration.
+ Từng file là từng phiên bản, từng lát cắt thời gian của db. Vì migration dùng ruby DSL nên không cần thiết phải tự viết SQL,
+ giúp cho các thay đổi cũng như schema độc lập với database.&lt;/p&gt;
+
+&lt;p&gt;Với những định nghĩa như trên thì mình nghĩ việc có migration giúp ích rất nhiều cho việc quản lý cấu trúc db, hợp tác làm
+ việc cho nhiều lập trình viên trong cùng một nhóm, không phải mó nhiều tới SQL và db. Trong những dự án mình làm thì
+ việc điều chỉnh cấu trúc db hiếm khi phải tự viết tay, ruby là ngôn ngữ thân thiện nữa nên dễ đọc dễ hiểu và dễ chia sẻ với nhóm.
+ Đó là vài điểm theo kinh nghiệm mình thấy hay và mình nghĩ để thể hiện nó rõ nét nhất là thông qua ví dụ và thực hành.&lt;/p&gt;
+
+&lt;p&gt;Migration như kiểu theo thời gian tới mỗi phiên bản migration là đang phản ánh đúng tình trạng hiện tại của schema từ
+ version đó trở về trước. Mỗi version được phản ánh qua nhiều chức năng như tạo bảng, xóa bảng, thêm cột, xóa cột,
+ thêm index, constraint,… Cùng với việc chạy migration AR (&lt;em&gt;ActiveRecord&lt;/em&gt;) cũng đồng thời update file &lt;code class=&quot;highlighter-rouge&quot;&gt;db/schema.rb&lt;/code&gt;
+ phản ánh cấu trúc của database.&lt;/p&gt;
+
+&lt;h2 id=&quot;trong-thực-tiễn&quot;&gt;Trong thực tiễn&lt;/h2&gt;
+
+&lt;h3 id=&quot;tạo-migration&quot;&gt;Tạo migration&lt;/h3&gt;
+
+&lt;p&gt;Tên file migration tuân thủ theo qui tắc &lt;em&gt;số_tên_migration.rb&lt;/em&gt;. Các file migration được sắp xếp theo tên file từ nhỏ đến lớn.
+ Lệnh &lt;code class=&quot;highlighter-rouge&quot;&gt;rails db:migrate&lt;/code&gt; để migrate db. Khi migrate, rails sẽ dựa vào thứ tự các file để thực hiện migration, nếu sai thứ tự
+ sẽ xảy ra nhiều đụng chạm nghiêm trọng phát sinh lỗi vì thế rails có hỗ trợ cho ta vài lệnh tạo migration kèm theo con số ở
+ đầu file được sinh ra từ thời gian theo UTC, ví dụ &lt;em&gt;20190511031142_create_posts.rb&lt;/em&gt; được tạo bằng lệnh&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; rails g migration CreatePosts
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Trong file được tạo ra sẽ chứa đoạn code như này (đoạn comment là tự viết)&lt;/p&gt;
+&lt;div class=&quot;language-ruby highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CreatePosts&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;ActiveRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;Migration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;6.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;change&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;create_table&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:posts&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;# t.references :user, null: false, foreign_key: true&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;# t.string :title&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;# t.text :body&lt;/span&gt;
+
+      &lt;span class=&quot;c1&quot;&gt;# t.timestamps&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Lệnh tạo migration còn hỗ trợ định nghĩa trước các cột nữa, ví dụ như&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;rails g AddCategoryToPosts category:references views:integer
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Một lệnh khác khá hữu ích đó là lệnh tạo model&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;rails generate model Product name:string description:text
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;tạo migration như này&lt;/p&gt;
+&lt;div class=&quot;language-ruby highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CreateProducts&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;ActiveRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;Migration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;5.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;change&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;create_table&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:products&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:name&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;text&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:description&lt;/span&gt;
+
+      &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;timestamps&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;viết-và-chạy-migration&quot;&gt;Viết và chạy migration&lt;/h3&gt;
+
+&lt;p&gt;Để hỗ trợ viết migration, rails cung cấp rất nhiều hàm ví dụ như &lt;code class=&quot;highlighter-rouge&quot;&gt;create_table, add_column, remove_column,...&lt;/code&gt;
+ các bạn có thể tham khảo ở những link sau:
+ &lt;a href=&quot;https://edgeapi.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html&quot;&gt;ActiveRecord::ConnectionAdapters::SchemaStatements&lt;/a&gt;,
+ &lt;a href=&quot;https://edgeapi.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html&quot;&gt;ActiveRecord::ConnectionAdapters::TableDefinition&lt;/a&gt;,
+ &lt;a href=&quot;https://edgeapi.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html&quot;&gt;ActiveRecord::ConnectionAdapters::Table&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Điểm đặc biệt quan trọng ở đây đó là migration cho phép ta &lt;em&gt;quay ngược về quá khứ&lt;/em&gt; có nghĩa là quay trở lại
+ phiên bản trước đó của db, lệnh để thực thi là &lt;code class=&quot;highlighter-rouge&quot;&gt;rails db:rollback&lt;/code&gt;, hỗ trợ thêm biến &lt;code class=&quot;highlighter-rouge&quot;&gt;STEP=số&lt;/code&gt; để quay ngược
+ lại &lt;em&gt;số&lt;/em&gt; verion của migration. Lệnh này là một cách viết để hỗ trợ lệnh &lt;code class=&quot;highlighter-rouge&quot;&gt;rails db:migration VERSION=số_đầu_file&lt;/code&gt;,
+ cùng với đó là lệnh &lt;code class=&quot;highlighter-rouge&quot;&gt;rails db:migrate:redo STEP=số&lt;/code&gt; để rollback và migrate lại.&lt;/p&gt;
+
+&lt;p&gt;Để có thể roll back thì rails phải biết rollback như thế nào. Đối với hàm change trong migration, khi gọi
+hàm trong hàm này thì rails sẽ tự động rollback nếu bản thân hàm được gọi đó có thể rollback được, nếu không
+sẽ raise lỗi &lt;code class=&quot;highlighter-rouge&quot;&gt;ActiveRecord::IrreversibleMigration&lt;/code&gt;. Khi đó ta phải cung cấp rails thông tin để rollback lại
+bằng hàm &lt;code class=&quot;highlighter-rouge&quot;&gt;reversible&lt;/code&gt;, ví dụ&lt;/p&gt;
+&lt;div class=&quot;language-ruby highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ExampleMigration&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;ActiveRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;Migration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;5.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;change&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;create_table&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:distributors&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:zipcode&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;reversible&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dir&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;dir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;up&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# add a CHECK constraint&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;SQL&lt;/span&gt;&lt;span class=&quot;sh&quot;&gt;
+          ALTER TABLE distributors
+            ADD CONSTRAINT zipchk
+              CHECK (char_length(zipcode) = 5) NO INHERIT;
+&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;        SQL&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;dir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;down&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;SQL&lt;/span&gt;&lt;span class=&quot;sh&quot;&gt;
+          ALTER TABLE distributors
+            DROP CONSTRAINT zipchk
+&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;        SQL&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;add_column&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:home_page_url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:string&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;rename_column&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:email&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:email_address&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Hoặc không ta có thể dùng cách cũ của rails là định nghĩa hai hàm &lt;code class=&quot;highlighter-rouge&quot;&gt;up, down&lt;/code&gt; để nói rõ cho rails biết migrate
+ làm gì và rollback làm gì.&lt;/p&gt;
+&lt;div class=&quot;language-ruby highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ExampleMigration&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;ActiveRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;Migration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;5.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;up&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;create_table&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:distributors&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:zipcode&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;# add a CHECK constraint&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;SQL&lt;/span&gt;&lt;span class=&quot;sh&quot;&gt;
+      ALTER TABLE distributors
+        ADD CONSTRAINT zipchk
+        CHECK (char_length(zipcode) = 5);
+&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;    SQL&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;add_column&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:home_page_url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:string&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;rename_column&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:email&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:email_address&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;down&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;rename_column&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:email_address&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:email&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;remove_column&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:home_page_url&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;SQL&lt;/span&gt;&lt;span class=&quot;sh&quot;&gt;
+      ALTER TABLE distributors
+        DROP CONSTRAINT zipchk
+&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;    SQL&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;drop_table&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:distributors&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Một hàm khác cũng khá hay dùng để rollback trong migration đó là hàm &lt;code class=&quot;highlighter-rouge&quot;&gt;revert&lt;/code&gt;, khi gọi hàm này nó sẽ revert
+ lại đúng những gì ta cung cấp (block hoặc class) giống với lệnh &lt;code class=&quot;highlighter-rouge&quot;&gt;rails db:rollback&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-ruby highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;nb&quot;&gt;require_relative&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'20121212123456_example_migration'&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;FixupExampleMigration&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;ActiveRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;Migration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;5.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;change&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;revert&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;ExampleMigration&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;create_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:apples&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:variety&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;File trên cũng có thể được viết lại mà không dùng &lt;code class=&quot;highlighter-rouge&quot;&gt;revert&lt;/code&gt; nhưng ta phải để ý nhiều thứ hơn như là đổi lại
+ thứ tự các lệnh trong hàm &lt;code class=&quot;highlighter-rouge&quot;&gt;change&lt;/code&gt;, đổi ngược lại &lt;code class=&quot;highlighter-rouge&quot;&gt;up&lt;/code&gt; và &lt;code class=&quot;highlighter-rouge&quot;&gt;down&lt;/code&gt;, chuyển &lt;code class=&quot;highlighter-rouge&quot;&gt;create_table&lt;/code&gt; thành &lt;code class=&quot;highlighter-rouge&quot;&gt;drop_table&lt;/code&gt;,
+ rắc rối hơn.&lt;/p&gt;
+
+&lt;h2 id=&quot;tổng-kết&quot;&gt;Tổng kết&lt;/h2&gt;
+
+&lt;p&gt;Trên là một vài điểm cần biết trước nhất về rails migration, như là công dụng cách viết, các lệnh hữu ích,
+ rollback,… gọi là các lệnh hay dùng. Ngoài ra còn một vài thứ hay ho về migration như chạy migration cho
+ các môi trường khác nhau, chạy phiên bản cố định migration, thay đổi output cho migration, cột modifier,…
+ sẽ dành cho các bạn tìm hiểu sâu hơn.&lt;/p&gt;
+
+&lt;p&gt;Nếu thấy có gì góp ý thì cứ mail liên hệ hoặc contribute nhé.&lt;/p&gt;
+
+&lt;p&gt;Rất nhiều yêu thương 💖&lt;/p&gt;</content><author><name></name></author><summary type="html">Rails migrations là gì, tại sao lại có nó và dùng nó như thế nào? Theo như trang hướng dẫn chính thức có giới thiệu thì migration là cách tiện lời để thay đổi database (db) schema dễ dàng và thống nhất theo thời gian. Với mỗi sự thay đổi trong cấu trúc db từ đầu đến cuối đều được phản ánh hết trong migration. Từng file là từng phiên bản, từng lát cắt thời gian của db. Vì migration dùng ruby DSL nên không cần thiết phải tự viết SQL, giúp cho các thay đổi cũng như schema độc lập với database. Với những định nghĩa như trên thì mình nghĩ việc có migration giúp ích rất nhiều cho việc quản lý cấu trúc db, hợp tác làm việc cho nhiều lập trình viên trong cùng một nhóm, không phải mó nhiều tới SQL và db. Trong những dự án mình làm thì việc điều chỉnh cấu trúc db hiếm khi phải tự viết tay, ruby là ngôn ngữ thân thiện nữa nên dễ đọc dễ hiểu và dễ chia sẻ với nhóm. Đó là vài điểm theo kinh nghiệm mình thấy hay và mình nghĩ để thể hiện nó rõ nét nhất là thông qua ví dụ và thực hành. Migration như kiểu theo thời gian tới mỗi phiên bản migration là đang phản ánh đúng tình trạng hiện tại của schema từ version đó trở về trước. Mỗi version được phản ánh qua nhiều chức năng như tạo bảng, xóa bảng, thêm cột, xóa cột, thêm index, constraint,… Cùng với việc chạy migration AR (ActiveRecord) cũng đồng thời update file db/schema.rb phản ánh cấu trúc của database. Trong thực tiễn Tạo migration Tên file migration tuân thủ theo qui tắc số_tên_migration.rb. Các file migration được sắp xếp theo tên file từ nhỏ đến lớn. Lệnh rails db:migrate để migrate db. Khi migrate, rails sẽ dựa vào thứ tự các file để thực hiện migration, nếu sai thứ tự sẽ xảy ra nhiều đụng chạm nghiêm trọng phát sinh lỗi vì thế rails có hỗ trợ cho ta vài lệnh tạo migration kèm theo con số ở đầu file được sinh ra từ thời gian theo UTC, ví dụ 20190511031142_create_posts.rb được tạo bằng lệnh rails g migration CreatePosts Trong file được tạo ra sẽ chứa đoạn code như này (đoạn comment là tự viết) class CreatePosts &amp;lt; ActiveRecord::Migration[6.0] def change create_table :posts do |t| # t.references :user, null: false, foreign_key: true # t.string :title # t.text :body # t.timestamps end end end Lệnh tạo migration còn hỗ trợ định nghĩa trước các cột nữa, ví dụ như rails g AddCategoryToPosts category:references views:integer Một lệnh khác khá hữu ích đó là lệnh tạo model rails generate model Product name:string description:text tạo migration như này class CreateProducts &amp;lt; ActiveRecord::Migration[5.0] def change create_table :products do |t| t.string :name t.text :description t.timestamps end end end Viết và chạy migration Để hỗ trợ viết migration, rails cung cấp rất nhiều hàm ví dụ như create_table, add_column, remove_column,... các bạn có thể tham khảo ở những link sau: ActiveRecord::ConnectionAdapters::SchemaStatements, ActiveRecord::ConnectionAdapters::TableDefinition, ActiveRecord::ConnectionAdapters::Table Điểm đặc biệt quan trọng ở đây đó là migration cho phép ta quay ngược về quá khứ có nghĩa là quay trở lại phiên bản trước đó của db, lệnh để thực thi là rails db:rollback, hỗ trợ thêm biến STEP=số để quay ngược lại số verion của migration. Lệnh này là một cách viết để hỗ trợ lệnh rails db:migration VERSION=số_đầu_file, cùng với đó là lệnh rails db:migrate:redo STEP=số để rollback và migrate lại. Để có thể roll back thì rails phải biết rollback như thế nào. Đối với hàm change trong migration, khi gọi hàm trong hàm này thì rails sẽ tự động rollback nếu bản thân hàm được gọi đó có thể rollback được, nếu không sẽ raise lỗi ActiveRecord::IrreversibleMigration. Khi đó ta phải cung cấp rails thông tin để rollback lại bằng hàm reversible, ví dụ class ExampleMigration &amp;lt; ActiveRecord::Migration[5.0] def change create_table :distributors do |t| t.string :zipcode end reversible do |dir| dir.up do # add a CHECK constraint execute &amp;lt;&amp;lt;-SQL ALTER TABLE distributors ADD CONSTRAINT zipchk CHECK (char_length(zipcode) = 5) NO INHERIT; SQL end dir.down do execute &amp;lt;&amp;lt;-SQL ALTER TABLE distributors DROP CONSTRAINT zipchk SQL end end add_column :users, :home_page_url, :string rename_column :users, :email, :email_address end end Hoặc không ta có thể dùng cách cũ của rails là định nghĩa hai hàm up, down để nói rõ cho rails biết migrate làm gì và rollback làm gì. class ExampleMigration &amp;lt; ActiveRecord::Migration[5.0] def up create_table :distributors do |t| t.string :zipcode end # add a CHECK constraint execute &amp;lt;&amp;lt;-SQL ALTER TABLE distributors ADD CONSTRAINT zipchk CHECK (char_length(zipcode) = 5); SQL add_column :users, :home_page_url, :string rename_column :users, :email, :email_address end def down rename_column :users, :email_address, :email remove_column :users, :home_page_url execute &amp;lt;&amp;lt;-SQL ALTER TABLE distributors DROP CONSTRAINT zipchk SQL drop_table :distributors end end Một hàm khác cũng khá hay dùng để rollback trong migration đó là hàm revert, khi gọi hàm này nó sẽ revert lại đúng những gì ta cung cấp (block hoặc class) giống với lệnh rails db:rollback require_relative '20121212123456_example_migration' class FixupExampleMigration &amp;lt; ActiveRecord::Migration[5.0] def change revert ExampleMigration create_table(:apples) do |t| t.string :variety end end end File trên cũng có thể được viết lại mà không dùng revert nhưng ta phải để ý nhiều thứ hơn như là đổi lại thứ tự các lệnh trong hàm change, đổi ngược lại up và down, chuyển create_table thành drop_table, rắc rối hơn. Tổng kết Trên là một vài điểm cần biết trước nhất về rails migration, như là công dụng cách viết, các lệnh hữu ích, rollback,… gọi là các lệnh hay dùng. Ngoài ra còn một vài thứ hay ho về migration như chạy migration cho các môi trường khác nhau, chạy phiên bản cố định migration, thay đổi output cho migration, cột modifier,… sẽ dành cho các bạn tìm hiểu sâu hơn. Nếu thấy có gì góp ý thì cứ mail liên hệ hoặc contribute nhé. Rất nhiều yêu thương 💖</summary></entry><entry><title type="html">Chuyển từ giây sang định dạng hh:mm:ss</title><link href="http://localhost:4000/rails/2019/01/19/chuyen-tu-giay-sang-dinh-dang-hhmmss.html" rel="alternate" type="text/html" title="Chuyển từ giây sang định dạng hh:mm:ss" /><published>2019-01-19T00:00:00+07:00</published><updated>2019-01-19T00:00:00+07:00</updated><id>http://localhost:4000/rails/2019/01/19/chuyen-tu-giay-sang-dinh-dang-hhmmss</id><content type="html" xml:base="http://localhost:4000/rails/2019/01/19/chuyen-tu-giay-sang-dinh-dang-hhmmss.html">&lt;p&gt;&lt;em&gt;Có những trường hợp ta có số liệu thời gian là một số có đơn vị thời gian để thuận tiện tính toán trong các bài toán phân tích, thống kê như tính tổng, trung bình thời gian, … Nhưng khi dùng thể hiện lên màn hình mà đích đến là người dùng thì cần phải định dạng lượng thời gian đó theo kiểu mà người dùng quen hình dung về thời gian, ví dụ như &lt;strong&gt;95:05:27&lt;/strong&gt; là 95 tiếng 5 phút 27 giây chẳng hạn. Bài viết hôm nay là để nói về việc chuyển từ số giây sang định dạng này cộng với việc tại sao lại viết về nó.&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;Ý tưởng viết bài này đến từ thực tế trong công việc, muốn hiển thị trực quan thời gian lên màn hình thời gian người dùng trên trang web. Với đầu vào là số giây. Thì khi gặp task mới, như một thói quen của lính mới, mình mò lên google để tìm cách làm. Một vài bài thảo luận trên &lt;em&gt;Stackoverflow&lt;/em&gt; có nói về vấn đề này, cách mà họ dùng là tạo một đối tượng thuộc lớp &lt;code class=&quot;highlighter-rouge&quot;&gt;Time&lt;/code&gt; với thời gian từ số giây của mình. Nhưng hạn chế của nó là chỉ đúng với thời gian trong một ngày, nếu số giây lớn hơn số giây của một ngày thì số giờ của ngày bị lố đó bị cắt mất.&lt;/p&gt;
 
